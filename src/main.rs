@@ -1,11 +1,14 @@
 use clap::{Parser, Subcommand};
 
-use crate::fetch::Fetch;
+use crate::{fetch::Fetch, gclient::Gclient};
 
 mod caffeinate;
 mod fetch;
 mod fetch_configs;
 mod fetch_util;
+mod gclient;
+mod gclient_eval;
+mod gclient_path;
 mod gclient_utils;
 mod git_common;
 mod utils;
@@ -14,7 +17,7 @@ fn main() {
     let cli = Cli::parse();
     match cli.command {
         Commands::Fetch(fetch) => fetch.run(),
-        Commands::Gclient => {}
+        Commands::Gclient(_gclient) => {}
     }
 }
 
@@ -30,5 +33,5 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Fetch(Fetch),
-    Gclient,
+    Gclient(Gclient),
 }

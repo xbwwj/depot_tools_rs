@@ -18,7 +18,6 @@ use crate::{
 
 /// fetch
 #[derive(Args, Debug)]
-#[command(author, version, about, long_about = None)]
 pub struct Fetch {
     /// Don't run commands, only print them.
     #[arg(short = 'n', long = "dry-run", default_value_t = false)]

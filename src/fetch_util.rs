@@ -15,14 +15,28 @@ pub struct Spec {
     pub with_branch_heads: Option<bool>,
 }
 
-#[derive(Debug, Default, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct Solution {
     pub name: String,
     pub url: String,
     pub deps_file: String,
+    // TODO: value can be object
     pub custom_deps: HashMap<String, String>,
     pub custom_vars: HashMap<String, String>,
     pub protocol_override: Option<String>,
+}
+
+impl Default for Solution {
+    fn default() -> Self {
+        Self {
+            deps_file: "DEPS".to_string(),
+            name: Default::default(),
+            url: Default::default(),
+            custom_deps: Default::default(),
+            custom_vars: Default::default(),
+            protocol_override: Default::default(),
+        }
+    }
 }
 
 #[derive(Debug)]
