@@ -6,30 +6,20 @@ use std::{
     process::ExitCode,
 };
 
-use clap::Parser;
+use clap::Args;
 use either::Either;
 
-use depot_tools::{
+use crate::{
     caffeinate,
     fetch_configs::chromium::Chromium,
     fetch_util::{Config, Spec},
     gclient_utils, git_common, utils,
 };
 
-fn main() -> ExitCode {
-    let args = Cli::parse();
-    let _caffeiniate_guard = caffeinate::scope(true);
-
-    let (spec, root) = run_config_fetch(&args.config, &args.props, None).unwrap();
-    run(args, spec, root)
-}
-
-/// This script can be used to download the Chromium sources. See
-/// http://www.chromium.org/developers/how-tos/get-the-code
-/// for full usage instructions.
-#[derive(Parser, Debug)]
+/// fetch
+#[derive(Args, Debug)]
 #[command(author, version, about, long_about = None)]
-pub struct Cli {
+pub struct Fetch {
     /// Don't run commands, only print them.
     #[arg(short = 'n', long = "dry-run", default_value_t = false)]
     pub dry_run: bool,
@@ -67,8 +57,21 @@ pub struct Cli {
     pub config: String,
 
     /// Additional properties or arguments.
-    #[arg(trailing_var_arg = true, allow_hyphen_values = true, value_parser = parse_key_value)]
+    #[arg(
+        trailing_var_arg = true,
+        allow_hyphen_values = true,
+        num_args = 0..,
+        value_parser = parse_key_value
+    )]
     pub props: HashMap<String, String>,
+}
+
+impl Fetch {
+    pub(crate) fn run(self) {
+        let _guard = caffeinate::scope(true);
+        let (spec, root) = run_config_fetch(&self.config, &self.props, None).unwrap();
+        run(self, spec, root);
+    }
 }
 
 fn parse_key_value(kv: &str) -> Result<(String, String), String> {
@@ -78,10 +81,7 @@ fn parse_key_value(kv: &str) -> Result<(String, String), String> {
         }
         Ok((key.to_string(), value.to_string()))
     } else {
-        Err(format!(
-            "参数 '{}' 格式错误。必须是 key=value 或 --key=value 格式",
-            kv
-        ))
+        Err(format!("invalid format: {}", kv))
     }
 }
 
@@ -121,7 +121,7 @@ fn run_config_fetch(
 /// - `options`: Options instance.
 /// - `spec`: Checkout configuration returned by the config's fetch_spec method (checkout type, respository url, etc.).
 /// - `root`: The directory into which the repo expects to be checkout out.
-fn run(options: Cli, mut spec: Spec, root: String) -> ExitCode {
+fn run(options: Fetch, mut spec: Spec, root: String) -> ExitCode {
     if gclient_utils::is_env_cog() {
         eprintln!(
             r#"Your current directory appears to be in a Cog workspace.
@@ -165,14 +165,14 @@ failed, delete the checkout and start over (crbug.com/230681)."#
 
 struct Checkout {
     base: PathBuf,
-    options: Cli,
+    options: Fetch,
     spec: Spec,
     root: String,
 }
 
 impl Checkout {
     /// checkout type is always gclient-git
-    fn new(options: Cli, spec: Spec, root: String) -> Self {
+    fn new(options: Fetch, spec: Spec, root: String) -> Self {
         let base = current_dir().unwrap();
         Self {
             base,
