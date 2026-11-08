@@ -1,17 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::{fetch::Fetch, gclient::Gclient};
-
-mod caffeinate;
-mod fetch;
-mod fetch_configs;
-mod fetch_util;
-mod gclient;
-mod gclient_eval;
-mod gclient_path;
-mod gclient_utils;
-mod git_common;
-mod utils;
+use depot_tools_rs::{fetch::Fetch, gclient::Gclient};
 
 fn main() {
     let cli = Cli::parse();

@@ -66,7 +66,7 @@ pub struct Fetch {
 }
 
 impl Fetch {
-    pub(crate) fn run(self) {
+    pub fn run(self) {
         let _guard = caffeinate::scope(true);
         let (spec, root) = run_config_fetch(&self.config, &self.props, None).unwrap();
         run(self, spec, root);
